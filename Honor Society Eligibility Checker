@@ -1,0 +1,160 @@
+// CMSC215PROJ2MandyckM Java File
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.ArrayList;
+import java.util.Scanner;
+
+public class CMSC215PROJ2MandyckM {
+       
+// ************************** Class: Student Setup **************************
+    public static class Student {
+        private static double gpaThreshold;
+        private final String name;
+        private final int creditHours;
+        private final int qualityPoints;
+
+        // Constructor
+        public Student(String name, int creditHours, int qualityPoints) {
+            this.name = name;
+            this.creditHours = creditHours;
+            this.qualityPoints = qualityPoints;
+        }
+
+        // GPA calculation
+        public double gpa() {
+            return creditHours == 0 ? 0 : (double) qualityPoints / creditHours;
+        }
+
+        // Eligibility check
+        public boolean eligibleForHonorSociety() {
+            return gpa() >= gpaThreshold;
+        }
+
+        // Set GPA threshold
+        public static void setGpaThreshold(double threshold) {
+            gpaThreshold = threshold;
+        }
+
+        @Override
+        public String toString() {
+            return name + ", GPA: " + String.format("%.2f", gpa()); 
+        }
+    }
+
+    // Subclass: Undergraduate Class Setup 
+    public static class Undergraduate extends Student {
+        private final String year;
+
+        // Constructor for Undergraduate
+        public Undergraduate(String name, int creditHours, int qualityPoints, String year) {
+            super(name, creditHours, qualityPoints);
+            this.year = year;
+        }
+
+        // Eligibility Override Check (Junior and Senior only):
+        @Override
+        public boolean eligibleForHonorSociety() {
+            return (year.equalsIgnoreCase("Junior") || year.equalsIgnoreCase("Senior")) && super.eligibleForHonorSociety();
+        }
+
+        @Override
+        public String toString() {
+            return super.toString() + ", Year: " + year; //Year used for Undergraduate Students
+        }
+    }
+
+    // Subclass: Graduate Class Setup 
+    public static class Graduate extends Student {
+        private final String degreeSought;
+
+        // Constructor for Graduate
+        public Graduate(String name, int creditHours, int qualityPoints, String degreeSought) {
+            super(name, creditHours, qualityPoints);
+            this.degreeSought = degreeSought;
+        }
+
+        // Eligibility Override Check:
+        @Override
+        public boolean eligibleForHonorSociety() {
+            return degreeSought.equalsIgnoreCase("Masters") && super.eligibleForHonorSociety();
+        }
+
+        @Override
+        public String toString() {
+            return super.toString() + ", Degree Sought: " + degreeSought; //Degree Sought used for Graduate Students
+        }
+    }
+
+// ************************** Class: DataControl Class ************************** //
+public static class DataControl {
+    public static void processHonorStudents() {
+        ArrayList<Student> students = new ArrayList<>();
+        double totalGpa = 0;
+        int studentCount = 0;
+
+        //Reads Student Info Using fileScanner from students.txt
+        try {
+            Scanner fileScanner = new Scanner(new File("students.txt"));
+            while (fileScanner.hasNextLine()) {
+                String line = fileScanner.nextLine();
+                String[] tokens = line.split(",\\s*|\\s+");
+
+                // Extract common data
+                String name = tokens[0] + " " + tokens[1];
+                int creditHours = Integer.parseInt(tokens[2]);
+                int qualityPoints = Integer.parseInt(tokens[3]);
+
+                // Checks if Undergraduate or Graduate
+                Student student;
+                if (tokens[4].equalsIgnoreCase("Freshman") || tokens[4].equalsIgnoreCase("Sophomore") ||
+                    tokens[4].equalsIgnoreCase("Junior") || tokens[4].equalsIgnoreCase("Senior")) {
+                    student = new Undergraduate(name, creditHours, qualityPoints, tokens[4]);
+                } else {
+                    student = new Graduate(name, creditHours, qualityPoints, tokens[4]);
+                }
+
+                students.add(student);
+                totalGpa += student.gpa();
+                studentCount++;
+            }
+
+            // Calculates All Avg Student GPA
+            double averageGpa = studentCount == 0 ? 0 : totalGpa / studentCount;
+
+            // Sets GPA Threshold to Average GPA Value (midpoint is Honor Society Membership)
+            Student.setGpaThreshold(averageGpa);
+            System.out.println("**********************************************************************************");
+            System.out.println("                 Welcome to the Honor Society Eligibility Checker!                ");
+            System.out.println("**********************************************************************************");
+            System.out.println("The program creates a list of students eligible for membership in an Honor Society\nbased on the list provided. This includes Undergraduate and Graduate Students.\nThe Threshold for Honor Society Membership is Determined by the Midpoint of the\nAverage GPA from a GPA Scale of 4.0.");
+            System.out.printf("\nAverage GPA of All Students: %.2f%n", averageGpa);
+            System.out.printf("Based on Calculations:\nMinimum GPA Threshold for Honor Society Membership: %.2f%n", Student.gpaThreshold);
+
+            // Displays All Students from students.txt
+            System.out.println("\nList of All Students:");
+            for (Student s : students) {
+                System.out.println(s);
+            }
+
+            // Displays Eligible Students
+            System.out.println("\nStudents Eligible for Honor Society:");
+            for (Student s : students) {
+                if (s.eligibleForHonorSociety()) {
+                    System.out.println(s);
+                }
+            }
+
+        } catch (FileNotFoundException e) {
+            System.out.println("Error: File students.txt Not Found. Exiting program."); //FileNotFound Exception if students.txt Missing
+        }
+    }
+}
+
+// ************************** Main Class ************************** //
+public static class Main {
+    public static void main(String[] args) {
+        DataControl.processHonorStudents(); // Calls Process Method from DataControl Class to Run Program
+    }
+}
+}
+// ends CMSC215PROJ2MandyckM
