@@ -1,0 +1,221 @@
+import javafx.application.Application;
+import javafx.geometry.Insets;
+import javafx.scene.Scene;
+import javafx.scene.control.*;
+import javafx.scene.layout.GridPane;
+import javafx.stage.Stage;
+
+// First Class: InputData
+class InputData {
+    final double distance;
+    final double gasPrice;
+    final double mileage;
+    final int days;
+    final double hotelCost;
+    final double foodCost;
+    final double attractionsCost;
+    final String distanceUnit;
+    final String gasPriceUnit;
+    final String mileageUnit;
+
+    public InputData(double distance, double gasPrice, double mileage, int days,
+                     double hotelCost, double foodCost, double attractionsCost,
+                     String distanceUnit, String gasPriceUnit, String mileageUnit) {
+        this.distance = distance;
+        this.gasPrice = gasPrice;
+        this.mileage = mileage;
+        this.days = days;
+        this.hotelCost = hotelCost;
+        this.foodCost = foodCost;
+        this.attractionsCost = attractionsCost;
+        this.distanceUnit = distanceUnit;
+        this.gasPriceUnit = gasPriceUnit;
+        this.mileageUnit = mileageUnit;
+    }
+}
+
+//Second Class: TripPost
+final class TripPost { // Final makes this immutable
+    private final double distanceMiles;
+    private final double gasPricePerGallon;
+    private final double mileageMPG;
+    private final int days;
+    private final double hotelCost;
+    private final double foodCost;
+    private final double attractionsCost;
+
+    public TripPost(InputData input) {
+        this.distanceMiles = input.distanceUnit.equals("kilometers") ? input.distance * 0.621371192 : input.distance;
+        this.gasPricePerGallon = input.gasPriceUnit.equals("dollars/liter") ? input.gasPrice * 3.785411784 : input.gasPrice;
+        this.mileageMPG = input.mileageUnit.equals("km/liter") ? input.mileage * 2.35214583 : input.mileage;
+        this.days = input.days;
+        this.hotelCost = input.hotelCost;
+        this.foodCost = input.foodCost;
+        this.attractionsCost = input.attractionsCost;
+    }
+
+    public double calculateTotalCost() {
+        double fuelCost = (distanceMiles / mileageMPG) * gasPricePerGallon;
+        double lodging = days * hotelCost;
+        double meals = days * foodCost;
+        return fuelCost + lodging + meals + attractionsCost;
+    }
+}
+
+// Class CMSC215PROJ3MandyckM for Stage setup
+public class CMSC215PROJ3MandyckM extends Application {
+
+    private TextField distanceField, gasPriceField, mileageField, daysField, hotelField, foodField, attractionsField, totalCostField;
+    private ComboBox<String> distanceUnitBox, gasPriceUnitBox, mileageUnitBox;
+
+    @Override
+ // Establishes Stage for Trip Cost Estimator
+    public void start(Stage primaryStage) {
+        primaryStage.setTitle("Trip Cost Estimator");
+
+        GridPane grid = new GridPane();
+        grid.setPadding(new Insets(20));
+        grid.setVgap(10);
+        grid.setHgap(10);
+
+    // Distance
+        grid.add(new Label("Distance:"), 0, 0);
+        distanceField = new TextField();
+        grid.add(distanceField, 1, 0);
+        distanceUnitBox = new ComboBox<>();
+        distanceUnitBox.getItems().addAll("miles", "kilometers");
+        distanceUnitBox.setValue("miles");
+        grid.add(distanceUnitBox, 2, 0);
+
+    // Gasoline Cost
+        grid.add(new Label("Gasoline Cost:"), 0, 1);
+        gasPriceField = new TextField();
+        grid.add(gasPriceField, 1, 1);
+        gasPriceUnitBox = new ComboBox<>();
+        gasPriceUnitBox.getItems().addAll("dollars/gal", "dollars/liter");
+        gasPriceUnitBox.setValue("dollars/gal");
+        grid.add(gasPriceUnitBox, 2, 1);
+
+    // Gas Mileage
+        grid.add(new Label("Gas Mileage:"), 0, 2);
+        mileageField = new TextField();
+        grid.add(mileageField, 1, 2);
+        mileageUnitBox = new ComboBox<>();
+        mileageUnitBox.getItems().addAll("mpg", "km/liter");
+        mileageUnitBox.setValue("mpg");
+        grid.add(mileageUnitBox, 2, 2);
+
+    // Number of Days
+        grid.add(new Label("Number of Days:"), 0, 3);
+        daysField = new TextField();
+        grid.add(daysField, 1, 3);
+
+    // Hotel Cost Per Day
+        grid.add(new Label("Hotel Cost per Day:"), 0, 4);
+        hotelField = new TextField();
+        grid.add(hotelField, 1, 4);
+
+    // Food Cost Per Day
+        grid.add(new Label("Food Cost per Day:"), 0, 5);
+        foodField = new TextField();
+        grid.add(foodField, 1, 5);
+
+    // Attractions total
+        grid.add(new Label("Attractions Total:"), 0, 6);
+        attractionsField = new TextField();
+        grid.add(attractionsField, 1, 6);
+
+    // Calculate button
+        Button calculateButton = new Button("Calculate");
+        grid.add(calculateButton, 1, 7);
+        calculateButton.setOnAction(e -> calculateCost());
+
+    // Total Trip cost
+        grid.add(new Label("Total Trip Cost:"), 0, 8);
+        totalCostField = new TextField();
+        totalCostField.setEditable(false);
+        grid.add(totalCostField, 1, 8);
+
+        Scene scene = new Scene(grid, 500, 400);
+        primaryStage.setScene(scene);
+        primaryStage.show();
+    }
+// CalculateCost 
+    private void calculateCost() {
+        try {
+            StringBuilder errorMessages = new StringBuilder();
+            
+      // Checks for CalculateCost Errors
+            double distance = parsePositiveDouble(distanceField.getText(), "Distance", errorMessages, true);
+            double gasPrice = parsePositiveDouble(gasPriceField.getText(), "Gasoline Cost", errorMessages, false);
+            double mileage = parsePositiveDouble(mileageField.getText(), "Gas Mileage", errorMessages, true);
+            int days = parsePositiveInt(daysField.getText(), "Number of Days", errorMessages);
+            double hotel = parsePositiveDouble(hotelField.getText(), "Hotel Cost per Day", errorMessages, false);
+            double food = parsePositiveDouble(foodField.getText(), "Food Cost per Day", errorMessages, false);
+            double attractions = parsePositiveDouble(attractionsField.getText(), "Attractions Total", errorMessages, false);
+
+            if (errorMessages.length() > 0) {
+                showError(errorMessages.toString());
+                totalCostField.setText("");
+                return;
+            }
+
+            InputData input = new InputData(distance, gasPrice, mileage, days,
+                    hotel, food, attractions,
+                    distanceUnitBox.getValue(),
+                    gasPriceUnitBox.getValue(),
+                    mileageUnitBox.getValue());
+
+            TripPost trip = new TripPost(input);
+            totalCostField.setText(String.format("$%.2f", trip.calculateTotalCost())); // Two decimal places
+
+        } catch (Exception e) {
+            totalCostField.setText("");
+        }
+    }
+// Error Messages Display Double
+    private double parsePositiveDouble(String text, String fieldName, StringBuilder errors, boolean zeroNotAllowed) {
+        try {
+            double value = Double.parseDouble(text);
+            if (value < 0) {
+                errors.append("Error: ").append(fieldName).append(" cannot be negative.\n");
+            } else if (zeroNotAllowed && value == 0) {
+                errors.append("Error: ").append(fieldName).append(" cannot be zero.\n");
+            }
+            return value;
+        } catch (NumberFormatException e) {
+            errors.append("Error: ").append(fieldName).append(" must be a valid number (ex: 3 for three).\n");
+            return 0;
+        }
+    }
+ 
+    private double parsePositiveDouble(String text, String fieldName, StringBuilder errors) {
+        return parsePositiveDouble(text, fieldName, errors, false);
+    }
+
+    private int parsePositiveInt(String text, String fieldName, StringBuilder errors) {
+        try {
+            int value = Integer.parseInt(text);
+            if (value < 0) {
+                errors.append("Error: ").append(fieldName).append(" cannot be negative.\n");
+            }
+            return value;
+        } catch (NumberFormatException e) {
+            errors.append("Error: ").append(fieldName).append(" must be a valid number (ex: 3 for three).\n");
+            return 0;
+        }
+    }
+    // Error Pop-Up Alert
+    private void showError(String message) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle("Input Error");
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
+    }
+
+    // Main Method Launches Program
+    public static void main(String[] args) {
+        launch(args);
+    }
+}
