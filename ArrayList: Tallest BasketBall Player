@@ -1,0 +1,187 @@
+/**Purpose of Program: a user-friendly program to find the tallest basketball player
+* whose age is less than or equal to the average of all the players.
+* Must have main method at end of program 
+* Three class types: Height, Player, InputData
+* Author: Melissa Mandyck Instructor: Thomas Timko *Date: 03/25/2025 
+*Modifications: none */ 
+
+// CMSC215PROJ1MandyckM Java File
+import java.util.ArrayList;
+import java.util.Scanner;
+
+public class CMSC215PROJ1MandyckM {
+
+ // First Class: Height (Feet and Inches)
+    public static class Height {
+        private final int feet;
+        private final int inches;
+
+        // Constructor for Height
+        public Height(int feet, int inches) {
+            // Validates Feet
+            if (feet < 0 || feet > 9) {
+                throw new IllegalArgumentException("Feet Must Be Between 0 and 9.");
+            }
+
+            // Converts Inches to Feet (If Necessary)
+            feet += inches / 12;
+            inches = inches % 12;
+
+            // Revalidates Feet After Conversion
+            if (feet > 9) {
+                throw new IllegalArgumentException("Height Cannot Exceed 9 Feet or Above.");
+            }
+
+            this.feet = feet;
+            this.inches = inches;
+        }
+
+        // Height Method Returns Height in Inches
+        public int toInches() {
+            return (feet * 12) + inches;
+        }
+
+        // toString Method Returns Height in Feet & Inches
+        @Override
+        public String toString() {
+            return feet + "' " + inches + "\"";
+        }
+    }
+
+  // Second Class: Player
+    public static class Player {
+        private final String name;
+        private final Height height;
+        private final int age;
+
+        // Constructors for Player
+        public Player(String name, Height height, int age) {
+            this.name = name;
+            this.height = height;
+            this.age = age;
+        }
+
+        // Getter methods: Name, Height & Age
+        public String getName() {
+            return name;
+        }
+
+        public Height getHeight() {
+            return height;
+        }
+
+        public int getAge() {
+            return age;
+        }
+    }
+
+ // Third Class: InputData
+   public static class InputData {
+        public static void processPlayers() {
+            Scanner scanner = new Scanner(System.in);
+            ArrayList<Player> players = new ArrayList<>();
+            int totalAge = 0;
+            int numPlayers = 0;
+
+            while (true) {
+                System.out.println("Welcome to the Basketball Player Age Information Program!\n");
+                System.out.print("Please enter player information. The prompt will ask for the Player Name, Height (Feet), Height (Inches), and Age.\n For example, if Player Name is John Doe, Player's Height is 6' 7\", and Age is 22 years old, then enter the following: \n Player Name: John Doe, Height (Feet): 6, Height (Inches): 7, Age: 22.\n\n Enter Player Name (or type 'done' to finish): ");
+                String name = scanner.nextLine();
+                if (name.equalsIgnoreCase("done")) {
+                    break;
+                }
+	// Prompt for Height (Feet)
+                int feet = -1, inches = -1;
+                while (true) {
+                    try {
+                        System.out.print("Enter Height (Feet): ");
+                        feet = Integer.parseInt(scanner.nextLine());
+                        if (feet < 0 || feet > 9) {
+                            System.out.println("Invalid Input. Feet Must be Between 0 and 9.");
+                        } else {
+                            break;
+                        }
+                    } catch (NumberFormatException e) {
+                        System.out.println("Error: Please Enter a Valid Number Between 0 and 9.");
+                    }
+                }
+	// Prompt for Height (Inches)
+                while (true) {
+                    try {
+                        System.out.print("Enter Height (Inches): ");
+                        inches = Integer.parseInt(scanner.nextLine());
+                        if (inches < 0 || inches >= 12) {
+                            System.out.println("Error: Inches Must be Between 0 and 11.");
+                        } else {
+                            break;
+                        }
+                    } catch (NumberFormatException e) {
+                        System.out.println("Error: Please Enter a Valid Number Between 0 and 11.");
+                    }
+                }
+
+                // Creates Height object
+                Height height = new Height(feet, inches);
+
+                // Age Prompts
+                int age = -1;
+                while (true) {
+                    try {
+                        System.out.print("Enter Age: ");
+                        age = Integer.parseInt(scanner.nextLine());
+                        if (age < 0 || age >= 100) {
+                            System.out.println("Age Must Be a Positive Integer Between 0 to 100.");
+                        } else {
+                            break; // valid input
+                        }
+                    } catch (NumberFormatException e) {
+                        System.out.println("Error: Please Enter a Valid Age Between 0 to 100.");
+                    }
+                }
+
+                // Creates Player object & Adds to list
+                Player player = new Player(name, height, age);
+                players.add(player);
+                totalAge += age;
+                numPlayers++;
+            }
+
+       // Calculates Average Age
+            if (numPlayers > 0) {
+                double averageAge = (double) totalAge / numPlayers;
+                System.out.println("\nAverage Age of All Players: " + String.format("%.2f", averageAge) + " years old");
+
+                // Finds Tallest Player Whose Age is Less Than or Equal to the Average Age
+                Player tallestPlayer = null;
+                for (Player player : players) {
+                    if (player.getAge() <= averageAge) {
+                        if (tallestPlayer == null || player.getHeight().toInches() > tallestPlayer.getHeight().toInches()) {
+                            tallestPlayer = player;
+                        }
+                    }
+                }
+
+         // Outputs the Results
+                if (tallestPlayer != null) {
+                    System.out.println("\nThe Tallest Player Whose Age is Less Than or Equal to the Average Age:");
+                    System.out.println("Player Name: " + tallestPlayer.getName());
+                    System.out.println("Height: " + tallestPlayer.getHeight());
+                    System.out.println("Age: " + tallestPlayer.getAge());
+                } else {
+                    System.out.println("Based on Data, No Player Meets the Criteria.");
+                }
+            } else {
+                System.out.println("Error: No Players Were Entered.");
+            }
+
+            scanner.close();
+        }
+    }
+
+//Main() Calls InputData.processPlayers 
+    public static void main(String[]args){
+        InputData.processPlayers(); //This Triggers the Program to Start
+        }
+    }
+
+// ends CMSC215PROJ1MandyckM Java File
